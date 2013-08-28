@@ -139,9 +139,13 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.hostname, self.port = self.path.split(':')
         else:
             u = urlparse(self.path)
-            if u.scheme != 'http':
+            if u.scheme == u.netloc == '':	# transproxy mode
+                self.hostname = self.headers.get("host")
+                #print "transproxy?", self.path, self.hostname
+            elif u.scheme != 'http':
                 raise UnsupportedSchemeException('Unknown scheme %s' % repr(u.scheme))
-            self.hostname = u.hostname
+            else:
+                self.hostname = u.hostname
             self.port = u.port or 80
             self.path = urlunparse(
                 ParseResult(
