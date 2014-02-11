@@ -139,9 +139,13 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.hostname, self.port = self.path.split(':')
         else:
             u = urlparse(self.path)
-            if u.scheme != 'http':
+            if u.scheme == u.netloc == '':	# transproxy mode
+                self.hostname = self.headers.get("host")
+                #print "transproxy?", self.path, self.hostname
+            elif u.scheme != 'http':
                 raise UnsupportedSchemeException('Unknown scheme %s' % repr(u.scheme))
-            self.hostname = u.hostname
+            else:
+                self.hostname = u.hostname
             self.port = u.port or 80
             self.path = urlunparse(
                 ParseResult(
@@ -191,16 +195,6 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def do_COMMAND(self):
 
-        # Is this an SSL tunnel?
-        if not self.is_connect:
-            try:
-                # Connect to destination
-                self._connect_to_host()
-            except Exception, e:
-                self.send_error(500, str(e))
-                return
-            # Extract path
-
         # Build request
         req = '%s %s %s\r\n' % (self.command, self.path, self.request_version)
 
@@ -211,8 +205,22 @@ class ProxyHandler(BaseHTTPRequestHandler):
         if 'Content-Length' in self.headers:
             req += self.rfile.read(int(self.headers['Content-Length']))
 
+        # Allow mitm_request to mangle as needed
+        req=self.mitm_request(req)
+
+        # Make connection
+        # Is this an SSL tunnel?
+        if not self.is_connect:
+            try:
+                # Connect to destination
+                self._connect_to_host()
+            except Exception, e:
+                self.send_error(500, str(e))
+                return
+            # Extract path
+
         # Send it down the pipe!
-        self._proxy_sock.sendall(self.mitm_request(req))
+        self._proxy_sock.sendall(req)
 
         # Parse response
         h = HTTPResponse(self._proxy_sock)
