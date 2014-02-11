@@ -160,7 +160,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
         # Connect to destination
         self._proxy_sock = socket()
-        self._proxy_sock.settimeout(10)
+        self._proxy_sock.setsockopt(1, 25, targetInterface)
+        self._proxy_sock.settimeout(30)
         self._proxy_sock.connect((self.hostname, int(self.port)))
 
         # Wrap socket if SSL is required
@@ -198,12 +199,19 @@ class ProxyHandler(BaseHTTPRequestHandler):
         # Build request
         req = '%s %s %s\r\n' % (self.command, self.path, self.request_version)
 
+        # Search X- format headers to determine witch eth to connect
+        if 'X-PNg' in self.headers:
+            targetInterface = self.headers['X-PNg'];
+            self.headers.remove('X-PNg')
+
         # Add headers to the request
         req += '%s\r\n' % self.headers
 
         # Append message body if present to the request
         if 'Content-Length' in self.headers:
             req += self.rfile.read(int(self.headers['Content-Length']))
+
+        targetInterface = 'eth0'
 
         # Allow mitm_request to mangle as needed
         req=self.mitm_request(req)
@@ -213,7 +221,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         if not self.is_connect:
             try:
                 # Connect to destination
-                self._connect_to_host()
+                self._connect_to_host(targetInterface = targetInterface)
             except Exception, e:
                 self.send_error(500, str(e))
                 return
@@ -281,7 +289,7 @@ class InvalidInterceptorPluginException(Exception):
 
 class MitmProxy(HTTPServer):
 
-    def __init__(self, server_address=('', 8080), RequestHandlerClass=ProxyHandler, bind_and_activate=True, ca_file='ca.pem'):
+    def __init__(self, server_address=('', port), RequestHandlerClass=ProxyHandler, bind_and_activate=True, ca_file='ca.pem'):
         HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
         self.ca = CertificateAuthority(ca_file)
         self._res_plugins = []
@@ -327,7 +335,7 @@ if __name__ == '__main__':
     if not argv[1:]:
         proxy = AsyncMitmProxy()
     else:
-        proxy = AsyncMitmProxy(ca_file=argv[1])
+        proxy = AsyncMitmProxy(port=argv[1])
     proxy.register_interceptor(DebugInterceptor)
     try:
         proxy.serve_forever()
