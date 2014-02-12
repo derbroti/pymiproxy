@@ -200,9 +200,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
         req = '%s %s %s\r\n' % (self.command, self.path, self.request_version)
 
         # Search X- format headers to determine witch eth to connect
-        if 'X-PNg' in self.headers:
-            targetInterface = self.headers['X-PNg'];
-            self.headers.remove('X-PNg')
+        if 'X-Requested-With' in self.headers:
+            targetInterface = self.headers['X-Requested-With'];
 
         # Add headers to the request
         req += '%s\r\n' % self.headers
