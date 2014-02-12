@@ -335,7 +335,7 @@ if __name__ == '__main__':
     if not argv[1:]:
         proxy = AsyncMitmProxy()
     else:
-        proxy = AsyncMitmProxy(server_address=('', argv[1]))
+        proxy = AsyncMitmProxy(server_address=('', int(argv[1])))
     proxy.register_interceptor(DebugInterceptor)
     try:
         proxy.serve_forever()
