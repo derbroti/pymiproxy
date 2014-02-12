@@ -133,7 +133,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         self.is_connect = False
         BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
-    def _connect_to_host(self):
+    def _connect_to_host(self, targetInterface = 'eth0'):
         # Get hostname and port to connect to
         if self.is_connect:
             self.hostname, self.port = self.path.split(':')
