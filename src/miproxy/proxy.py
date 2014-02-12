@@ -289,7 +289,7 @@ class InvalidInterceptorPluginException(Exception):
 
 class MitmProxy(HTTPServer):
 
-    def __init__(self, server_address=('', port), RequestHandlerClass=ProxyHandler, bind_and_activate=True, ca_file='ca.pem'):
+    def __init__(self, server_address=('', 8080), RequestHandlerClass=ProxyHandler, bind_and_activate=True, ca_file='ca.pem'):
         HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
         self.ca = CertificateAuthority(ca_file)
         self._res_plugins = []
@@ -335,7 +335,7 @@ if __name__ == '__main__':
     if not argv[1:]:
         proxy = AsyncMitmProxy()
     else:
-        proxy = AsyncMitmProxy(port=argv[1])
+        proxy = AsyncMitmProxy(server_address=('', argv[1]))
     proxy.register_interceptor(DebugInterceptor)
     try:
         proxy.serve_forever()
