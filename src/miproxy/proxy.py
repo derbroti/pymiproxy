@@ -11,7 +11,7 @@ from socket import socket
 from re import compile
 from sys import argv, stdout
 
-
+import re
 
 from OpenSSL.crypto import (X509Extension, X509, dump_privatekey, dump_certificate, load_certificate, load_privatekey,
                             PKey, TYPE_RSA, X509Req)
@@ -181,8 +181,6 @@ class ProxyHandler(BaseHTTPRequestHandler):
             # Connect to destination first
             self._connect_to_host()
 
-            print '>> Debug: connecting through SSL WTF? %s' % (targetInterface)
-
             # If successful, let's do this!
             self.send_response(200, 'Connection established')
             self.end_headers()
@@ -210,7 +208,10 @@ class ProxyHandler(BaseHTTPRequestHandler):
             targetInterface = self.headers['X-Requested-With'];
 
         # Add headers to the request
-        req += '%s\r\n' % self.headers
+        req += '%s\r\n' % (self.headers)
+
+        req = re.sub('Proxy-Connection: (.*?)\r\n', '', req)
+        req = re.sub('X-Requested-With: (.*?)\r\n', '', req)
 
         # Append message body if present to the request
         if 'Content-Length' in self.headers:
@@ -224,7 +225,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         if not self.is_connect:
             try:
                 # Connect to destination
-                print '>> Debug: connecting through Normal %s' % (targetInterface)
+                #print '>> Debug: connecting through Normal %s' % (targetInterface)
 
                 self._connect_to_host(targetInterface = targetInterface)
             except Exception, e:
