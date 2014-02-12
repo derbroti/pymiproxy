@@ -11,6 +11,8 @@ from socket import socket
 from re import compile
 from sys import argv, stdout
 
+
+
 from OpenSSL.crypto import (X509Extension, X509, dump_privatekey, dump_certificate, load_certificate, load_privatekey,
                             PKey, TYPE_RSA, X509Req)
 from OpenSSL.SSL import FILETYPE_PEM
@@ -160,7 +162,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
         # Connect to destination
         self._proxy_sock = socket()
-        self._proxy_sock.setsockopt(socket.SOL_SOCKET, 25, targetInterface)
+        self._proxy_sock.setsockopt(1, 25, targetInterface)
         self._proxy_sock.settimeout(30)
         self._proxy_sock.connect((self.hostname, int(self.port)))
 
@@ -179,8 +181,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             # Connect to destination first
             self._connect_to_host()
 
-            sys.stdout.write("Debug: connecting through SSL WTF? %s%%   \r" % (targetInterface) )
-            sys.stdout.flush()
+            print '>> Debug: connecting through SSL WTF? %s' % (targetInterface)
 
             # If successful, let's do this!
             self.send_response(200, 'Connection established')
@@ -223,8 +224,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         if not self.is_connect:
             try:
                 # Connect to destination
-                sys.stdout.write("Debug: connecting through %s%%   \r" % (targetInterface) )
-                sys.stdout.flush()
+                print '>> Debug: connecting through Normal %s' % (targetInterface)
 
                 self._connect_to_host(targetInterface = targetInterface)
             except Exception, e:
