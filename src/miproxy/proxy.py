@@ -203,6 +203,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
         # Build request
         req = '%s %s %s\r\n' % (self.command, self.path, self.request_version)
 
+        targetInterface = 'eth0'
+
         # Search X- format headers to determine witch eth to connect
         if 'X-Requested-With' in self.headers:
             targetInterface = self.headers['X-Requested-With'];
@@ -213,8 +215,6 @@ class ProxyHandler(BaseHTTPRequestHandler):
         # Append message body if present to the request
         if 'Content-Length' in self.headers:
             req += self.rfile.read(int(self.headers['Content-Length']))
-
-        targetInterface = 'eth0'
 
         # Allow mitm_request to mangle as needed
         req=self.mitm_request(req)
