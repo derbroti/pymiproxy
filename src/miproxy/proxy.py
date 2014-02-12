@@ -163,7 +163,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         # Connect to destination
         self._proxy_sock = socket()
         self._proxy_sock.setsockopt(1, 25, targetInterface)
-        self._proxy_sock.settimeout(30)
+        self._proxy_sock.settimeout(10)
         self._proxy_sock.connect((self.hostname, int(self.port)))
 
         # Wrap socket if SSL is required
