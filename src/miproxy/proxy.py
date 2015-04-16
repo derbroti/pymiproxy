@@ -135,7 +135,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         self.is_connect = False
         BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
-    def _connect_to_host(self, targetInterface = 'eth0'):
+    def _connect_to_host(self):
         # Get hostname and port to connect to
         if self.is_connect:
             self.hostname, self.port = self.path.split(':')
@@ -162,7 +162,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
         # Connect to destination
         self._proxy_sock = socket()
-        self._proxy_sock.setsockopt(1, 25, targetInterface)
+        #self._proxy_sock.setsockopt(1, 25, targetInterface)
         self._proxy_sock.settimeout(10)
         self._proxy_sock.connect((self.hostname, int(self.port)))
 
@@ -201,11 +201,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
         # Build request
         req = '%s %s %s\r\n' % (self.command, self.path, self.request_version)
 
-        targetInterface = 'eth0'
-
         # Search X- format headers to determine witch eth to connect
-        if 'X-Requested-With' in self.headers:
-            targetInterface = self.headers['X-Requested-With'];
+        #if 'X-Requested-With' in self.headers:
+        #    targetInterface = self.headers['X-Requested-With'];
 
         # Add headers to the request
         req += '%s\r\n' % (self.headers)
@@ -227,7 +225,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 # Connect to destination
                 #print '>> Debug: connecting through Normal %s' % (targetInterface)
 
-                self._connect_to_host(targetInterface = targetInterface)
+                self._connect_to_host()
             except Exception, e:
                 self.send_error(500, str(e))
                 return
